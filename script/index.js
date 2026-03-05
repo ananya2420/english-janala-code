@@ -5,58 +5,117 @@ const loadLessons = () => {
     .then(data => displayLesson(data.data)); // important: use data.data
 };
 
-const loadLevelWord=(id)=>{
-    
+const removeActive = () => {
+  const lessonButtons = document.querySelectorAll(".lesson-btn");
+  lessonButtons.forEach(btn => btn.classList.remove("active"));
+}
+
+const loadLevelWord=(id)=>{    
     const url=`https://openapi.programming-hero.com/api/level/${id}`;
     fetch(url)
     .then(res=>res.json())
-    .then(data => displayLevelWord(data.data));
+    .then((data)=>{
+      removeActive();//remove all active class
+      const clickBtn=document.getElementById(`lesson-btn-${id}`);
+      clickBtn.classList.add("active");
+      displayLevelWord(data.data);
+    })
+} 
 
+/*
+{
+    "word": "Linger",
+    "meaning": "থেমে থাকা / বিলম্ব করা",
+    "pronunciation": "লিঙ্গার",
+    "level": 2,
+    "sentence": "She lingered at the door, unwilling to leave.",
+    "points": 2,
+    "partsOfSpeech": "verb",
+    "synonyms": [
+        "stay",
+        "remain",
+        "delay"
+    ],
+    "id": 12
+}
+*/
+
+const loadWordDetail=async(id)=>{
+  const url=`https://openapi.programming-hero.com/api/word/${id}`;
+  console.log(url);
+  const res=await fetch(url);
+  const details=await res.json();
+  displayWordDetails(details.data);
 }
 
-const displayLevelWord = (words) => {
+
+const displayWordDetails=(word)=>{
+   console.log(word);
+   const detailsBox=document.getElementById("details-container");
+   detailsBox.innerHTML=`
+   <div class="">
+        <h2 class="text-2xl font-bold">${word.word} (  <i class="fa-solid fa-microphone-lines"></i> :${word.pronunciation})</h2>
+      </div>
+
+      <div class="">
+        <h2 class="font-bold">meaning</h2>
+        <p>${word.meaning}</p>
+      </div>
+
+      <div class="">
+        <h2 class="font-bold">Example</h2>
+        <p>${word.sentence}</p>
+      </div>
+
+      <div class="">
+        <h2 class="font-bold">Synonym</h2>
+        <span class="btn">syn1</span>
+        <span class="btn">syn1</span>
+        <span class="btn">syn1</span>
+      </div>
+   `
+   document.getElementById("word_modal").showModal();
+}
+
+    const displayLevelWord = (words) => {
   const wordContainer = document.getElementById("word-container");
   wordContainer.innerHTML = "";
 
-/*
-  id
-: 
-75
-level
-: 
-1
-meaning
-: 
-"খাওয়া"
-pronunciation
-: 
-"ইট"
-word
-: 
-"Eat"
-*/
+  if (!words || words.length === 0) {
+    wordContainer.innerHTML = `
+      <div class="text-center bg-sky-100 col-span-full rounded py-10 space-y-6 font-bangla">
+        <img class="mx-auto" src="assets/alert-error.png" alt="No lesson selected" />
+        <p class="text-xl font-medium text-gray-400">আপনি এখনো কোন Lesson Select করেন ন</p>
+        <h2 class="font-bold text-4xl">একটি Lesson Select করুন।</h2>
+      </div>
+    `;
+    return;
+  }
+
   words.forEach(word => {
-    console.log(word);
-
-    const card = document.createElement("div"); 
-
+    const card = document.createElement("div");
     card.innerHTML = `
       <div class="bg-white rounded-xl shadow-sm text-center py-10 px-5 space-y-4">
-          <h2 class="font-bold text-2xl">${word.word}</h2>
-          <p class="font-semibold">Meaning /Pronounciation</p>
-
-          <div class="text-2xl font-medium font-bangla">"${word.meaning} / ${word.pronunciation}"</div>
-          
-          <div class="flex justify-between items-center">
-            <button class="btn bg-[#1A91FF10] hover:bg-[#1A91FF80]"><i class="fa-solid fa-circle-info"></i></button>
-            <button class="btn bg-[#1A91FF10] hover:bg-[#1A91FF80]"><i class="fa-solid fa-volume-high"></i></button>
-          </div>
+        <h2 class="font-bold text-2xl">${word.word || "শব্দ পাওয়া যায় নি"}</h2>
+        <p class="font-semibold">Meaning / Pronunciation</p>
+        <div class="text-2xl font-medium font-bangla">
+          "${word.meaning || "টাকা পাওয়া যায়নি"} / ${word.pronunciation || "pronunciation পাওয়া যায়নি"}"
         </div>
+        <div class="flex justify-between items-center">
+          <button onClick="loadWordDetail(${word.id})" class="btn bg-[#1A91FF10] hover:bg-[#1A91FF80]">
+            <i class="fa-solid fa-circle-info"></i>
+          </button>
+          <button class="btn bg-[#1A91FF10] hover:bg-[#1A91FF80]">
+            <i class="fa-solid fa-volume-high"></i>
+          </button>
+        </div>
+      </div>
     `;
-
     wordContainer.appendChild(card);
   });
 };
+
+
 // Display lessons
 const displayLesson = (lessons) => {
   const levelContainer = document.getElementById("level-container");
@@ -68,7 +127,7 @@ const displayLesson = (lessons) => {
     const btnDiv = document.createElement("div");
 
     btnDiv.innerHTML = `
-      <button onClick="loadLevelWord(${lesson.level_no})" class="btn btn-outline btn-primary m-2">
+      <button id="lesson-btn-${lesson.level_no}" onClick="loadLevelWord(${lesson.level_no})" class="btn btn-outline btn-primary lesson-btn m-2">
         <i class="fa-solid fa-book-open"></i>
         ${lesson.level_no}
       </button>
