@@ -1,6 +1,6 @@
 
 
-My Live Link: stellar-dango-96da34.netlify.app
+My Live Link: https://gleaming-frangipane-61276d.netlify.app/
 
 
 # ENGLISH <img width="25px" src="./assets/logo.png" /> JANALA
